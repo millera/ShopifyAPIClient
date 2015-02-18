@@ -15,13 +15,18 @@ class ShopifyClient {
 	}
 
 	// Get the URL required to request authorization
-	public function getAuthorizeUrl($scope, $redirect_url='') {
-		$url = "http://{$this->shop_domain}/admin/oauth/authorize?client_id={$this->api_key}&scope=" . urlencode($scope);
-		if ($redirect_url != '')
-		{
-			$url .= "&redirect_uri=" . urlencode($redirect_url);
-		}
-		return $url;
+	public function getAuthorizeUrl($scope, $redirect_url = null) {
+
+		$scope = is_array($scope) ? implode(',', $scope) : $scope;
+		$data = array(
+			'client_id' => $this->api_key,
+			'scope' => $scope
+		);
+
+		if ($redirect_url)
+			$data['redirect_uri'] = $redirect_url;
+
+		return sprintf('http://%s/admin/oauth/authorize?%s', $this->shop_domain, http_build_query($data));
 	}
 
 	// Once the User has authorized the app, call this with the code to get the access token
@@ -38,7 +43,7 @@ class ShopifyClient {
 			$this->token = $response['access_token'];
 			return $this->token;
 		}
-		
+
 		// Else we return false
 		return false;
 	}
@@ -61,7 +66,7 @@ class ShopifyClient {
 	public function call($method, $path, $params=array())
 	{
 		$baseurl = "https://{$this->shop_domain}/";
-	
+
 		$url = $baseurl.ltrim($path, '/');
 		$query = in_array($method, array('GET','DELETE')) ? $params : array();
 		$payload = in_array($method, array('POST','PUT')) ? json_encode($params) : array();
@@ -133,7 +138,7 @@ class ShopifyClient {
 
 		curl_setopt ($ch, CURLOPT_CUSTOMREQUEST, $method);
 		if (!empty($request_headers)) curl_setopt($ch, CURLOPT_HTTPHEADER, $request_headers);
-		
+
 		if ($method != 'GET' && !empty($payload))
 		{
 			if (is_array($payload)) $payload = http_build_query($payload);
@@ -155,7 +160,7 @@ class ShopifyClient {
 
 		return $headers;
 	}
-	
+
 	private function shopApiCallLimitParam($index)
 	{
 		if ($this->last_response_headers == null)
@@ -164,7 +169,7 @@ class ShopifyClient {
 		}
 		$params = explode('/', $this->last_response_headers['http_x_shopify_shop_api_call_limit']);
 		return (int) $params[$index];
-	}	
+	}
 }
 
 class ShopifyCurlException extends Exception { }
@@ -175,7 +180,7 @@ class ShopifyApiException extends Exception
 	protected $params;
 	protected $response_headers;
 	protected $response;
-	
+
 	function __construct($method, $path, $params, $response_headers, $response)
 	{
 		$this->method = $method;
@@ -183,7 +188,7 @@ class ShopifyApiException extends Exception
 		$this->params = $params;
 		$this->response_headers = $response_headers;
 		$this->response = $response;
-		
+
 		parent::__construct($response_headers['http_status_message'], $response_headers['http_status_code']);
 	}
 

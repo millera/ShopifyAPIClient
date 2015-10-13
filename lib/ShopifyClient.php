@@ -9,10 +9,10 @@ class ShopifyClient
 {
 
     public $shop_domain;
-    private $token;
-    private $api_key;
-    private $secret;
-    private $last_response_headers = null;
+    protected $token;
+    protected $api_key;
+    protected $secret;
+    protected $last_response_headers = null;
 
     /**
      * Create a Shopify Client
@@ -105,7 +105,7 @@ class ShopifyClient
      * @return type
      * @throws ShopifyApiException
      */
-    private function call($method, $path, $params = array())
+    protected function call($method, $path, $params = array())
     {
         $baseurl = "https://{$this->shop_domain}/";
 
@@ -196,7 +196,7 @@ class ShopifyClient
         return $hmac === $signature;
     }
 
-    private function curlHttpApiRequest($method, $url, $query = '', $payload = '', $request_headers = array())
+    protected function curlHttpApiRequest($method, $url, $query = '', $payload = '', $request_headers = array())
     {
         $url = $this->curlAppendQuery($url, $query);
         $ch = curl_init($url);
@@ -216,7 +216,7 @@ class ShopifyClient
         return $message_body;
     }
 
-    private function curlAppendQuery($url, $query)
+    protected function curlAppendQuery($url, $query)
     {
         if (empty($query))
             return $url;
@@ -226,7 +226,7 @@ class ShopifyClient
             return "$url?$query";
     }
 
-    private function curlSetopts($ch, $method, $payload, $request_headers)
+    protected function curlSetopts($ch, $method, $payload, $request_headers)
     {
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -249,7 +249,7 @@ class ShopifyClient
         }
     }
 
-    private function curlParseHeaders($message_headers)
+    protected function curlParseHeaders($message_headers)
     {
         $header_lines = preg_split("/\r\n|\n|\r/", $message_headers);
         $headers = array();
@@ -264,7 +264,7 @@ class ShopifyClient
         return $headers;
     }
 
-    private function shopApiCallLimitParam($index)
+    protected function shopApiCallLimitParam($index)
     {
         if ($this->last_response_headers == null) {
             throw new Exception('Cannot be called before an API call.');

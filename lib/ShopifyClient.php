@@ -1,6 +1,9 @@
 <?php
 
-namespace Shopify;
+namespace WIC;
+
+use WIC\ShopifyApiException;
+use WIC\ShopifyCurlException;
 
 class ShopifyClient
 {
@@ -203,8 +206,10 @@ class ShopifyClient
         $error = curl_error($ch);
         curl_close($ch);
 
-        if ($errno)
+        if ($errno) {
             throw new ShopifyCurlException($error, $errno);
+        }
+        
         list($message_headers, $message_body) = preg_split("/\r\n\r\n|\n\n|\r\r/", $response, 2);
         $this->last_response_headers = $this->curlParseHeaders($message_headers);
 

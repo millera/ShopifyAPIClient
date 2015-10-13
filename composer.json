@@ -3,7 +3,7 @@
     "description": "Lightweight multi-paradigm PHP (JSON) client for the Shopify API.",
     "type": "library",
     "require": {
-        "php": "5.4",
+        "php": ">= 5.4.0",
         "ext-curl": "*",
         "ext-json": "*"
     },

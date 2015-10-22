@@ -91,7 +91,7 @@ class ShopifyClient
         return $this->shopApiCallLimitParam(1);
     }
 
-    public function callsLeft($response_headers)
+    public function callsLeft()
     {
         return $this->callLimit() - $this->callsMade();
     }
@@ -128,7 +128,7 @@ class ShopifyClient
 
     /**
      * Make a GET request
-     * 
+     *
      * @param String $path URL to call
      * @param Array $params Data or filters
      */
@@ -139,7 +139,7 @@ class ShopifyClient
 
     /**
      * Make a GET request
-     * 
+     *
      * @param String $path URL to call
      * @param Array $params Data or filters
      */
@@ -150,7 +150,7 @@ class ShopifyClient
 
     /**
      * Make a GET request
-     * 
+     *
      * @param String $path URL to call
      * @param Array $params Data or filters
      */
@@ -161,7 +161,7 @@ class ShopifyClient
 
     /**
      * Make a GET request
-     * 
+     *
      * @param String $path URL to call
      * @param Array $params Data or filters
      */
@@ -209,7 +209,7 @@ class ShopifyClient
         if ($errno) {
             throw new ShopifyCurlException($error, $errno);
         }
-        
+
         list($message_headers, $message_body) = preg_split("/\r\n\r\n|\n\n|\r\r/", $response, 2);
         $this->last_response_headers = $this->curlParseHeaders($message_headers);
 

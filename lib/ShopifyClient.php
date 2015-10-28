@@ -22,8 +22,7 @@ class ShopifyClient
      * @param String $api_key App API Key
      * @param String $secret App API Secret
      */
-    public function __construct($shop_domain, $token, $api_key, $secret)
-    {
+    public function __construct($shop_domain, $token, $api_key, $secret) {
         $this->name = "ShopifyClient";
         $this->shop_domain = $shop_domain;
         $this->token = $token;
@@ -38,8 +37,7 @@ class ShopifyClient
      * @param String $redirect_url
      * @return String url to redirect to
      */
-    public function getAuthorizeUrl($scope, $redirect_url = null)
-    {
+    public function getAuthorizeUrl($scope, $redirect_url = null) {
 
         $scope = is_array($scope) ? implode(',', $scope) : $scope;
         $data = array(
@@ -59,8 +57,7 @@ class ShopifyClient
      * @param string $code
      * @return token || false
      */
-    public function getAccessToken($code)
-    {
+    public function getAccessToken($code) {
         // POST to  POST https://SHOP_NAME.myshopify.com/admin/oauth/access_token
         $url = "https://{$this->shop_domain}/admin/oauth/access_token";
         $payload = http_build_query(array(
@@ -81,18 +78,15 @@ class ShopifyClient
         return false;
     }
 
-    public function callsMade()
-    {
+    public function callsMade() {
         return $this->shopApiCallLimitParam(0);
     }
 
-    public function callLimit()
-    {
+    public function callLimit() {
         return $this->shopApiCallLimitParam(1);
     }
 
-    public function callsLeft()
-    {
+    public function callsLeft() {
         return $this->callLimit() - $this->callsMade();
     }
 
@@ -105,17 +99,16 @@ class ShopifyClient
      * @return type
      * @throws ShopifyApiException
      */
-    protected function call($method, $path, $params = array())
-    {
+    protected function call($method, $path, $params = array()) {
         $baseurl = "https://{$this->shop_domain}/";
 
-        $url = $baseurl.ltrim($path, '/');
+        $url = $baseurl . ltrim($path, '/');
         $query = in_array($method, array('GET', 'DELETE')) ? $params : array();
         $payload = in_array($method, array('POST', 'PUT')) ? json_encode($params) : array();
         $request_headers = in_array($method, array('POST', 'PUT')) ? array("Content-Type: application/json; charset=utf-8", 'Expect:') : array();
 
         // add auth headers
-        $request_headers[] = 'X-Shopify-Access-Token: '.$this->token;
+        $request_headers[] = 'X-Shopify-Access-Token: ' . $this->token;
 
         $response = $this->curlHttpApiRequest($method, $url, $query, $payload, $request_headers);
         $response = json_decode($response, true);
@@ -130,44 +123,73 @@ class ShopifyClient
      * Make a GET request
      *
      * @param String $path URL to call
-     * @param Array $params Data or filters
+     * @param Array $filters filters
      */
-    public function get($path, $params = array())
-    {
-        return $this->call('GET', $path, $params);
+    public function get($path, Array $filters = array()) {
+        return $this->call('GET', $path, $filters);
     }
 
     /**
-     * Make a GET request
+     * Make a POST request
+     *
+     * @param String $path URL to call
+     * @param Array $data data to send
+     */
+    public function post($path, Array $data) {
+        return $this->call('POST', $path, $data);
+    }
+
+    /**
+     * Make a PUT request
      *
      * @param String $path URL to call
      * @param Array $params Data or filters
      */
-    public function post($path, $params = array())
-    {
-        return $this->call('POST', $path, $params);
+    public function put($path, Array $data) {
+        return $this->call('PUT', $path, $data);
     }
 
     /**
-     * Make a GET request
+     * Make a DELETE request
      *
      * @param String $path URL to call
      * @param Array $params Data or filters
      */
-    public function update($path, $params = array())
-    {
-        return $this->call('PUT', $path, $params);
-    }
-
-    /**
-     * Make a GET request
-     *
-     * @param String $path URL to call
-     * @param Array $params Data or filters
-     */
-    public function delete($path, $params = array())
-    {
+    public function delete($path, $params = array()) {
         return $this->call('DELETE', $path, $params);
+    }
+
+    /**
+     * Create a new model (CRUD Helper)
+     * 
+     * @param string $path URL to call
+     * @param array $data Model data
+     * @return array the new model
+     */
+    public function create($path, Array $data) {
+        return $this->post($path, $data);
+    }
+
+    /**
+     * Retrieve a model or a list of models (CRUD Helper)
+     * 
+     * @param string $path URL to call
+     * @param array $filters filters to precise request
+     * @return array Model or model list
+     */
+    public function read($path, Array $filters = array()) {
+        return $this->get($path, $filters);
+    }
+
+    /**
+     * Update a model (CRUD Helper)
+     * 
+     * @param string $path URL to call
+     * @param array $data Model updated data
+     * @return array Updated model
+     */
+    public function update($path, Array $data) {
+        return $this->put($path, $data);
     }
 
     /**
@@ -176,8 +198,7 @@ class ShopifyClient
      * @param Array $query
      * @return boolean
      */
-    public function validateSignature($query)
-    {
+    public function validateSignature($query) {
         if (!is_array($query) || empty($query['hmac']) || !is_string($query['hmac']))
             return false;
 
@@ -190,14 +211,13 @@ class ShopifyClient
 
         ksort($query);
         foreach ($query as $key => $value)
-            $map[] = $key.'='.$value;
+            $map[] = $key . '=' . $value;
 
         $signature = hash_hmac('sha256', implode('&', $map), $this->secret);
         return $hmac === $signature;
     }
 
-    protected function curlHttpApiRequest($method, $url, $query = '', $payload = '', $request_headers = array())
-    {
+    protected function curlHttpApiRequest($method, $url, $query = '', $payload = '', $request_headers = array()) {
         $url = $this->curlAppendQuery($url, $query);
         $ch = curl_init($url);
         $this->curlSetopts($ch, $method, $payload, $request_headers);
@@ -216,18 +236,16 @@ class ShopifyClient
         return $message_body;
     }
 
-    protected function curlAppendQuery($url, $query)
-    {
+    protected function curlAppendQuery($url, $query) {
         if (empty($query))
             return $url;
         if (is_array($query))
-            return "$url?".http_build_query($query);
+            return "$url?" . http_build_query($query);
         else
             return "$url?$query";
     }
 
-    protected function curlSetopts($ch, $method, $payload, $request_headers)
-    {
+    protected function curlSetopts($ch, $method, $payload, $request_headers) {
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
@@ -249,12 +267,10 @@ class ShopifyClient
         }
     }
 
-    protected function curlParseHeaders($message_headers)
-    {
+    protected function curlParseHeaders($message_headers) {
         $header_lines = preg_split("/\r\n|\n|\r/", $message_headers);
         $headers = array();
-        list(, $headers['http_status_code'], $headers['http_status_message']) = explode(' ',
-            trim(array_shift($header_lines)), 3);
+        list(, $headers['http_status_code'], $headers['http_status_message']) = explode(' ', trim(array_shift($header_lines)), 3);
         foreach ($header_lines as $header_line) {
             list($name, $value) = explode(':', $header_line, 2);
             $name = strtolower($name);
@@ -264,12 +280,12 @@ class ShopifyClient
         return $headers;
     }
 
-    protected function shopApiCallLimitParam($index)
-    {
+    protected function shopApiCallLimitParam($index) {
         if ($this->last_response_headers == null) {
             throw new Exception('Cannot be called before an API call.');
         }
         $params = explode('/', $this->last_response_headers['http_x_shopify_shop_api_call_limit']);
         return (int)$params[$index];
     }
+
 }

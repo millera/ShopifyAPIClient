@@ -13,6 +13,7 @@ class ShopifyClient
     protected $api_key;
     protected $secret;
     protected $last_response_headers = null;
+    protected $calls_left;
 
     /**
      * Create a Shopify Client
@@ -24,10 +25,11 @@ class ShopifyClient
      */
     public function __construct($shop_domain, $token, $api_key, $secret) {
         $this->name = "ShopifyClient";
-        $this->shop_domain = $shop_domain;
+        $this->shop_domain = preg_replace('/^http(s)?:\/\//i', '', $shop_domain);
         $this->token = $token;
         $this->api_key = $api_key;
         $this->secret = $secret;
+        $this->calls_left = 2;
     }
 
     /**
@@ -161,7 +163,7 @@ class ShopifyClient
 
     /**
      * Create a new model (CRUD Helper)
-     * 
+     *
      * @param string $path URL to call
      * @param array $data Model data
      * @return array the new model
@@ -172,7 +174,7 @@ class ShopifyClient
 
     /**
      * Retrieve a model or a list of models (CRUD Helper)
-     * 
+     *
      * @param string $path URL to call
      * @param array $filters filters to precise request
      * @return array Model or model list
@@ -183,7 +185,7 @@ class ShopifyClient
 
     /**
      * Update a model (CRUD Helper)
-     * 
+     *
      * @param string $path URL to call
      * @param array $data Model updated data
      * @return array Updated model
@@ -218,6 +220,10 @@ class ShopifyClient
     }
 
     protected function curlHttpApiRequest($method, $url, $query = '', $payload = '', $request_headers = array()) {
+        if ($this->calls_left < 1) {
+            sleep(1);
+        }
+
         $url = $this->curlAppendQuery($url, $query);
         $ch = curl_init($url);
         $this->curlSetopts($ch, $method, $payload, $request_headers);
@@ -232,7 +238,7 @@ class ShopifyClient
 
         list($message_headers, $message_body) = preg_split("/\r\n\r\n|\n\n|\r\r/", $response, 2);
         $this->last_response_headers = $this->curlParseHeaders($message_headers);
-
+        $this->calls_left = (int)$this->callsLeft();
         return $message_body;
     }
 

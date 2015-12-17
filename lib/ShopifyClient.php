@@ -25,7 +25,7 @@ class ShopifyClient
      */
     public function __construct($shop_domain, $token, $api_key, $secret) {
         $this->name = "ShopifyClient";
-        $this->shop_domain = preg_replace('/^http(s)?:\/\//i', '', $shop_domain);
+        $this->shop_domain = preg_replace('/^https?:\/\//i', '', $shop_domain);
         $this->token = $token;
         $this->api_key = $api_key;
         $this->secret = $secret;

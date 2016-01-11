@@ -238,7 +238,12 @@ class ShopifyClient
 
         list($message_headers, $message_body) = preg_split("/\r\n\r\n|\n\n|\r\r/", $response, 2);
         $this->last_response_headers = $this->curlParseHeaders($message_headers);
-        $this->calls_left = (int)$this->callsLeft();
+        $status_code = (int)$this->last_response_headers['http_status_code'];
+
+        if ($status_code >= 200 && $status_code < 300) {
+            $this->calls_left = (int)$this->callsLeft();
+        }
+
         return $message_body;
     }
 

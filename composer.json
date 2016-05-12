@@ -1,5 +1,5 @@
 {
-    "name": "millera/ShopifyAPIClient",
+    "name": "wic/shopify-api-client",
     "description": "Lightweight multi-paradigm PHP (JSON) client for the Shopify API.",
     "type": "library",
     "require": {
